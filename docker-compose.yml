@@ -1,0 +1,176 @@
+version: "3"
+
+networks:
+  mylocal:
+    driver: bridge
+    ipam:
+     driver: default
+     config:
+       - subnet: 10.10.0.0/22
+
+services:
+  envoy:
+    image: docker.pkg.github.com/octu0/example-envoy-xds/envoy:1.15.3
+    environment:
+      - ENVOY_XDS_CLUSTER=example0
+      - ENVOY_XDS_NODE_ID=envoy-node1
+      - ENVOY_XDS_HOST=10.10.0.101
+      - ENVOY_XDS_PORT=5000
+      - ENVOY_XDS_LOCALITY_REGION=asia-northeast1
+      - ENVOY_XDS_LOCALITY_ZONE=asia-northeast1-a
+      - ENVOY_ALS_HOST=10.10.0.101
+      - ENVOY_ALS_PORT=5001
+      - ENVOY_ADMIN_LISTEN_HOST=0.0.0.0
+      - ENVOY_ADMIN_LISTEN_PORT=9800
+    depends_on:
+      - "xds-001"
+    ports:
+      - "8080:8080" # open envoy listener
+      - "9800:9800" # open envoy admin
+    networks:
+      mylocal:
+        ipv4_address: 10.10.0.100
+
+  xds-001:
+    image: docker.pkg.github.com/octu0/example-envoy-xds/example-envoy-xds:1.0.0
+    environment:
+      - XDS_NODE_ID=envoy-node1
+      - XDS_LISTEN_ADDR=0.0.0.0:5000
+      - ALS_LISTEN_ADDR=0.0.0.0:5001
+      - CDS_YAML=/app/vol/cds.yaml
+      - EDS_YAML=/app/vol/eds.yaml
+      - RDS_YAML=/app/vol/rds.yaml
+      - LDS_YAML=/app/vol/lds.yaml
+    volumes:
+      - .:/app/vol
+    command: |
+      server
+    networks:
+      mylocal:
+        ipv4_address: 10.10.0.101
+
+  node-001:
+    image: docker.pkg.github.com/octu0/revproxy/revproxy:1.0.0
+    command: |
+      server
+      --port 3001
+      --template '
+      {{ HandleFunc "/" (Text 200 "legacy node-001\n") }}
+      {{ HandleFunc "/ready" (Text 200 "OK") }}'
+    ports:
+      - "3001:3001"
+    networks:
+      mylocal:
+        ipv4_address: 10.10.1.101
+
+  node-002:
+    image: docker.pkg.github.com/octu0/revproxy/revproxy:1.0.0
+    command: |
+      server
+      --port 3001
+      --template '
+      {{ HandleFunc "/" (Text 200 "legacy node-002\n") }}
+      {{ HandleFunc "/ready" (Text 200 "OK") }}'
+    ports:
+      - "3002:3001"
+    networks:
+      mylocal:
+        ipv4_address: 10.10.1.102
+
+  node-003:
+    image: docker.pkg.github.com/octu0/revproxy/revproxy:1.0.0
+    command: |
+      server
+      --port 3001
+      --template '
+      {{ HandleFunc "/" (Text 200 "legacy node-003\n") }}
+      {{ HandleFunc "/ready" (Text 200 "OK") }}'
+    ports:
+      - "3003:3001"
+    networks:
+      mylocal:
+        ipv4_address: 10.10.1.103
+
+  node-101:
+    image: docker.pkg.github.com/octu0/revproxy/revproxy:1.0.0
+    command: |
+      server
+      --port 3001
+      --template '
+      {{ HandleFunc "/" (Text 200 "new node-101\n") }}
+      {{ HandleFunc "/ready" (Text 200 "OK") }}'
+    ports:
+      - "3101:3001"
+    networks:
+      mylocal:
+        ipv4_address: 10.10.2.101
+
+  node-102:
+    image: docker.pkg.github.com/octu0/revproxy/revproxy:1.0.0
+    command: |
+      server
+      --port 3001
+      --template '
+      {{ HandleFunc "/" (Text 200 "new node-102\n") }}
+      {{ HandleFunc "/ready" (Text 200 "OK") }}'
+    ports:
+      - "3102:3001"
+    networks:
+      mylocal:
+        ipv4_address: 10.10.2.102
+
+  node-103:
+    image: docker.pkg.github.com/octu0/revproxy/revproxy:1.0.0
+    command: |
+      server
+      --port 3001
+      --template '
+      {{ HandleFunc "/" (Text 200 "new node-103\n") }}
+      {{ HandleFunc "/ready" (Text 200 "OK") }}'
+    ports:
+      - "3103:3001"
+    networks:
+      mylocal:
+        ipv4_address: 10.10.2.103
+
+  node-011:
+    image: docker.pkg.github.com/octu0/revproxy/revproxy:1.0.0
+    command: |
+      server
+      --port 3001
+      --template '
+      {{ HandleFunc "/" (Text 200 "image node-011\n") }}
+      {{ HandleFunc "/heartbeat" (Text 200 "OK") }}'
+    ports:
+      - "3011:3002"
+    networks:
+      mylocal:
+        ipv4_address: 10.10.3.101
+
+  node-012:
+    image: docker.pkg.github.com/octu0/revproxy/revproxy:1.0.0
+    command: |
+      server
+      --port 3001
+      --template '
+      {{ HandleFunc "/" (Text 200 "image node-012\n") }}
+      {{ HandleFunc "/heartbeat" (Text 200 "OK") }}'
+    ports:
+      - "3012:3002"
+    networks:
+      mylocal:
+        ipv4_address: 10.10.3.102
+
+  node-013:
+    image: docker.pkg.github.com/octu0/revproxy/revproxy:1.0.0
+    command: |
+      server
+      --port 3001
+      --template '
+      {{ HandleFunc "/" (Text 200 "image node-013\n") }}
+      {{ HandleFunc "/heartbeat" (Text 200 "OK") }}'
+    ports:
+      - "3013:3002"
+    networks:
+      mylocal:
+        ipv4_address: 10.10.3.103

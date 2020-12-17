@@ -1,0 +1,26 @@
+- vhost: "vhost-api"
+  domain: ["www.example.com", "example.com"]
+  cluster:
+    - prefix: "/"
+      target:
+        - {name: web-api-legacy, weight: 90}
+        - {name: web-api-new, weight: 10}
+    - prefix: "/api/v1"
+      target:
+        - name: web-api-legacy
+          weight: 100
+  action:
+    timeout: 10
+    idle-timeout: 30
+    retry-policy: "retry10"
+- vhost: "vhost-image"
+  domain: ["image.example.com"]
+  cluster:
+    - prefix: "/"
+      target:
+        - name: web-image
+          weight: 100
+  action:
+    timeout: 100
+    idle-timeout: 100
+    retry-policy: "off"

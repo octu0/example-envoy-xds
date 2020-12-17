@@ -1,0 +1,63 @@
+- name: web-api-legacy
+  balancing-policy: "locality"
+  instances:
+    - instance-name: "i-150968213734162441"
+      ip: 10.10.1.101
+      port: 3001
+      region: "asia-northeast1"
+      zone:   "asia-northeast1-a"
+      protocol: "tcp"
+    - instance-name: "i-115454892532826121"
+      ip: 10.10.1.102
+      port: 3001
+      region: "asia-northeast1"
+      zone:   "asia-northeast1-b"
+      protocol: "tcp"
+    - instance-name: "i-121688054015459337"
+      ip: 10.10.1.103
+      port: 3001
+      region: "asia-northeast1"
+      zone:   "asia-northeast1-c"
+      protocol: "tcp"
+- name: web-api-new
+  balancing-policy: "locality"
+  instances:
+    - instance-name: "i-9527428124770313"
+      ip: 10.10.2.101
+      port: 3001
+      region: "asia-northeast1"
+      zone:   "asia-northeast1-a"
+      protocol: "tcp"
+    - instance-name: "i-9672352367378441"
+      ip: 10.10.2.102
+      port: 3001
+      region: "asia-northeast1"
+      zone:   "asia-northeast1-b"
+      protocol: "tcp"
+    - instance-name: "i-9237543618871305"
+      ip: 10.10.2.103
+      port: 3001
+      region: "asia-northeast1"
+      zone:   "asia-northeast1-c"
+      protocol: "tcp"
+- name: web-image
+  balancing-policy: "locality"
+  instances:
+    - instance-name: "i-68489626595098633"
+      ip: 10.10.3.101
+      port: 3002
+      region: "asia-northeast1"
+      zone:   "asia-northeast1-a"
+      protocol: "tcp"
+    - instance-name: "i-50805169218125833"
+      ip: 10.10.3.102
+      port: 3002
+      region: "asia-northeast1"
+      zone:   "asia-northeast1-b"
+      protocol: "tcp"
+    - instance-name: "i-11087494799949833"
+      ip: 10.10.3.103
+      port: 3002
+      region: "asia-northeast1"
+      zone:   "asia-northeast1-c"
+      protocol: "tcp"

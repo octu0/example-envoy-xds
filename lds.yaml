@@ -1,0 +1,18 @@
+listen:
+  protocol: "tcp"
+  ip: 0.0.0.0
+  port: 8080
+server:
+  name: "example-xds-server"
+  use-remote-addr: true
+  skip-xff-append:  true
+  xff-trusted-hops: 1
+timeout:
+  request-timeout: 10
+  drain-timeout:   60
+  idle-timeout:    30
+  max-duration:    10
+accesslog:
+  log-id: "web"
+  flush-interval: 5
+  buffer-size: 4096

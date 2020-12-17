@@ -1,0 +1,30 @@
+- name: web-api-legacy
+  lb-policy: "round-robin"
+  health-check:
+    host:      "example.com"
+    path:      "/ready"
+    status:    [200, 304]
+    timeout:   30
+    interval:  3
+    healthy:   3
+    unhealthy: 10
+- name: web-api-new
+  lb-policy: "round-robin"
+  health-check:
+    host:      "example.com"
+    path:      "/ready"
+    status:    [200, 304]
+    timeout:   30
+    interval:  3
+    healthy:   3
+    unhealthy: 10
+- name: web-image
+  lb-policy: "least-request"
+  health-check:
+    host:      "image.example.com"
+    path:      "/heartbeat"
+    status:    [200]
+    timeout:   10
+    interval:  3
+    healthy:   3
+    unhealthy: 5
