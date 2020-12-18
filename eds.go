@@ -41,7 +41,7 @@ func (c EDSInstanceConfig) addr(protocol corev3.SocketAddress_Protocol) *corev3.
 	return &corev3.Address{
 		Address: &corev3.Address_SocketAddress{
 			SocketAddress: &corev3.SocketAddress{
-        //ResolverName: "STRICT_DNS", // If hostname is included in the IP specification, use DNS.
+				//ResolverName: "STRICT_DNS", // if hostname is included in the IP specification, use DNS.
 				Protocol: protocol,
 				Address:  c.IP,
 				PortSpecifier: &corev3.SocketAddress_PortValue{
