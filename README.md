@@ -14,7 +14,7 @@ Features:
 - Configuration examples of various settings
 - Configuration of Weighted Round Robin LoadBalancer
 
-## Bootstraping
+## Bootstrapping
 
 As bootstrap, in [envoy/envoy.yaml](https://github.com/octu0/example-envoy-xds/blob/master/envoy/envoy.yaml), specify `example-envoy-xds` in `xds_cluster` and `als_cluster`  
 This will allow xDS communication with grpc.
@@ -96,7 +96,7 @@ layered_runtime:
         name: runtime0
 ```
 
-When you start envoy with docker, you can specify the IP and port of `example-envoy-xds` with environment variables.
+When you start envoy with docker, you can specify IP and port of `example-envoy-xds` with environment variables.
 
 ```shell
 $ docker run --net=host                          \
@@ -112,7 +112,8 @@ $ docker run --net=host                          \
 ```
 
 Configure xDS with grpc, `example-envoy-xds` will be started so that envoy can communicate with it.  
-At this time, the node.id of envoy (specified by `ENVOY_XDS_NODE_ID`) must be the same value to start, otherwise the snapshot will not be changed.
+At this time, `node.id` of envoy (specified by `ENVOY_XDS_NODE_ID`) must be the same value,  
+otherwise the Snapshot will not be changed.
 
 ```shell
 $ docker run --net=host           \
@@ -126,6 +127,8 @@ $ docker run --net=host           \
   -v $(pwd):/app/vol              \
   docker.pkg.github.com/octu0/example-envoy-xds/example-envoy-xds:1.0.0 server
 ```
+
+Edit eds.yaml in current directory to make sure EDS are updated.
 
 ## Execution example
 
