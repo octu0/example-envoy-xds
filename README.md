@@ -115,10 +115,16 @@ Configure xDS with grpc, `example-envoy-xds` will be started so that envoy can c
 At this time, the node.id of envoy (specified by `ENVOY_XDS_NODE_ID`) must be the same value to start, otherwise the snapshot will not be changed.
 
 ```shell
-$ example-envoy-xds server       \
-  --node-id envoy-node1          \
-  --xds-listen-addr 0.0.0.0:5000 \
-  --als-listen-addr 0.0.0.0:5001 \
+$ docker run --net=host           \
+  -e XDS_NODE_ID=envoy-node1      \
+  -e XDS_LISTEN_ADDR=0.0.0.0:5000 \
+  -e ALS_LISTEN_ADDR=0.0.0.0:5001 \
+  -e CDS_YAML=/app/vol/cds.yaml   \
+  -e EDS_YAML=/app/vol/eds.yaml   \
+  -e RDS_YAML=/app/vol/rds.yaml   \
+  -e LDS_YAML=/app/vol/lds.yaml   \
+  -v $(pwd):/app/vol              \
+  docker.pkg.github.com/octu0/example-envoy-xds/example-envoy-xds:1.0.0 server
 ```
 
 ## Execution example
