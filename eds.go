@@ -59,12 +59,21 @@ const (
 type edsOptFunc func(*edsOpt)
 
 type edsOpt struct {
-	loadBalancingWeight uint32
+	loadBalancingWeight    uint32
+	healthStatus           corev3.HealthStatus
+	setInitialHealthStatus bool
 }
 
 func EdsLoadBalancingWeight(weight uint32) edsOptFunc {
 	return func(opt *edsOpt) {
 		opt.loadBalancingWeight = weight
+	}
+}
+
+func EdsLbEndpointHealthStatus(status corev3.HealthStatus) edsOptFunc {
+	return func(opt *edsOpt) {
+		opt.healthStatus = status
+		opt.setInitialHealthStatus = true
 	}
 }
 
@@ -110,13 +119,32 @@ func (e *endpointDiscoveryService) instanceEndpoint(instance EDSInstanceConfig) 
 }
 
 func (e *endpointDiscoveryService) lbEndpoints(instances []EDSInstanceConfig) []*endpointv3.LbEndpoint {
+	if e.opt.setInitialHealthStatus {
+		return e.lbEndpointsWithInitialStatus(instances, e.opt.healthStatus)
+	}
+	return e.lbEndpointsDefault(instances)
+}
+
+func (e *endpointDiscoveryService) lbEndpointsWithInitialStatus(instances []EDSInstanceConfig, status corev3.HealthStatus) []*endpointv3.LbEndpoint {
 	endpoints := make([]*endpointv3.LbEndpoint, len(instances))
 	for idx, ins := range instances {
 		endpoints[idx] = &endpointv3.LbEndpoint{
 			HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
 				Endpoint: e.instanceEndpoint(ins),
 			},
-			HealthStatus: corev3.HealthStatus_UNHEALTHY, // initial status = unhealthy
+			HealthStatus: status,
+		}
+	}
+	return endpoints
+}
+
+func (e *endpointDiscoveryService) lbEndpointsDefault(instances []EDSInstanceConfig) []*endpointv3.LbEndpoint {
+	endpoints := make([]*endpointv3.LbEndpoint, len(instances))
+	for idx, ins := range instances {
+		endpoints[idx] = &endpointv3.LbEndpoint{
+			HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
+				Endpoint: e.instanceEndpoint(ins),
+			},
 		}
 	}
 	return endpoints
