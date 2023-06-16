@@ -2,9 +2,15 @@
   domain: ["www.example.com", "example.com"]
   cluster:
     - prefix: "/"
+      headers:
+        - name: "x-canary-version"
+          string_match:
+            exact: "hoge"
       target:
-        - {name: web-api-legacy, weight: 90}
-        - {name: web-api-new, weight: 10}
+        - {name: web-api-legacy, weight: 100}
+    - prefix: "/"
+      target:
+        - {name: web-api-new, weight: 100}
     - prefix: "/api/v1"
       target:
         - name: web-api-legacy
