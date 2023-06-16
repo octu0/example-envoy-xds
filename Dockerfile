@@ -1,4 +1,4 @@
-FROM golang:1.15-alpine as builder
+FROM golang:1.18-alpine as builder
 
 WORKDIR /build
 ADD . /go/src/github.com/octu0/example-xds-server
