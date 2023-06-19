@@ -10,7 +10,7 @@ networks:
 
 services:
   envoy:
-    image: docker.pkg.github.com/octu0/example-envoy-xds/envoy:1.15.3
+    image: docker.pkg.github.com/octu0/example-envoy-xds/envoy:1.21.6
     environment:
       - ENVOY_XDS_CLUSTER=example0
       - ENVOY_XDS_NODE_ID=envoy-node1
