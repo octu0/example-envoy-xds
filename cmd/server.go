@@ -33,7 +33,8 @@ func serverAction(c *cli.Context) error {
 		nodeId = hostname
 	}
 
-	wf := xds.NewWatchFile(nodeId,
+	wf := xds.NewWatchFile(sctx,
+		nodeId,
 		xds.WatchCdsConfigFile(c.String("cds-yaml")),
 		xds.WatchEdsConfigFile(c.String("eds-yaml")),
 		xds.WatchRdsConfigFile(c.String("rds-yaml")),

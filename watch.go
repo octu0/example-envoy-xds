@@ -48,6 +48,7 @@ func WatchLdsConfigFile(path string) watchOptFunc {
 }
 
 type WatchFile struct {
+	ctx context.Context
 	nodeId   string
 	opt      *watchOpt
 	cache    cachev3.SnapshotCache
@@ -58,7 +59,7 @@ type WatchFile struct {
 	resource *resource
 }
 
-func NewWatchFile(nodeId string, funcs ...watchOptFunc) *WatchFile {
+func NewWatchFile(ctx context.Context, nodeId string, funcs ...watchOptFunc) *WatchFile {
 	opt := new(watchOpt)
 	for _, fn := range funcs {
 		fn(opt)
@@ -66,6 +67,7 @@ func NewWatchFile(nodeId string, funcs ...watchOptFunc) *WatchFile {
 
 	xdsConfig := xdsConfigSource()
 	return &WatchFile{
+		ctx:      ctx,
 		nodeId:   nodeId,
 		opt:      opt,
 		cache:    cachev3.NewSnapshotCache(false, cachev3.IDHash{}, newLoggerSnapshotCache()),
@@ -351,7 +353,7 @@ func (w *WatchFile) updateSnapshot() error {
 	}
 
 	log.Printf("info: xds %s snapshot version: %s", w.nodeId, version)
-	w.cache.SetSnapshot(w.nodeId, snapshot)
+	w.cache.SetSnapshot(w.ctx, w.nodeId, snapshot)
 	return nil
 }
 

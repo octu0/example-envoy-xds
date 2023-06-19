@@ -10,6 +10,7 @@ import (
 
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	routev3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	matcherv3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 )
 
 type RDSConfig struct {
@@ -22,11 +23,21 @@ type RDSConfig struct {
 type RDSClusterConfig struct {
 	Prefix string                   `yaml:"prefix"       validate:"required"`
 	Target []RDSClusterWeightConfig `yaml:"target"       validate:"required"`
+	Headers []RDSClusterHeaderConfig `yaml:"headers"      validate:""`
 }
 
 type RDSClusterWeightConfig struct {
 	ClusterName string `yaml:"name"         validate:"required"`
 	Weight      uint32 `yaml:"weight"       validate:"gte=0,lte=100"`
+}
+
+type RDSClusterHeaderConfig struct {
+	HeaderName string                `yaml:"name"          validate:""`
+	StringMatch RDSStringMatcher     `yaml:"string_match"  validate:""`
+}
+
+type RDSStringMatcher struct {
+	Exact string `yaml:"exact"             validate:""`
 }
 
 type RDSActionConfig struct {
@@ -194,6 +205,27 @@ func (r *routeDiscoveryService) clusterTotalWeight(targets []RDSClusterWeightCon
 	return weight
 }
 
+func (r *routeDiscoveryService) header(h RDSClusterHeaderConfig) *routev3.HeaderMatcher {
+	return &routev3.HeaderMatcher{
+		Name: h.HeaderName,
+		HeaderMatchSpecifier: &routev3.HeaderMatcher_StringMatch{
+			StringMatch: &matcherv3.StringMatcher{
+				MatchPattern: &matcherv3.StringMatcher_Exact{
+					Exact: h.StringMatch.Exact,
+				},
+			},
+        },
+	}
+}
+
+func (r *routeDiscoveryService) clusterHeaders(cluster RDSClusterConfig) []*routev3.HeaderMatcher {
+	headers := make([]*routev3.HeaderMatcher, len(cluster.Headers))
+	for i, h := range cluster.Headers {
+		headers[i] = r.header(h)
+	}
+	return headers
+}
+
 func (r *routeDiscoveryService) route(cluster RDSClusterConfig, action RDSActionConfig) *routev3.Route {
 	clusters := r.clusters(cluster.Target)
 	totalWeights := r.clusterTotalWeight(cluster.Target)
@@ -203,6 +235,7 @@ func (r *routeDiscoveryService) route(cluster RDSClusterConfig, action RDSAction
 		Name: routeName,
 		Match: &routev3.RouteMatch{
 			PathSpecifier: &routev3.RouteMatch_Prefix{Prefix: cluster.Prefix},
+			Headers: r.clusterHeaders(cluster),
 		},
 		// https://github.com/envoyproxy/go-control-plane/blob/d5e54b318e480a7dcc1cadf1a4406145669a5965/envoy/config/route/v3/route_components.pb.go#L1379
 		Action: &routev3.Route_Route{

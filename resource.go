@@ -10,6 +10,7 @@ import (
 	routev3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	typesv3 "github.com/envoyproxy/go-control-plane/pkg/cache/types"
 	cachev3 "github.com/envoyproxy/go-control-plane/pkg/cache/v3"
+	resourcev3 "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 )
 
 func versionString(endpoint, cluster, route, listener string) string {
@@ -111,7 +112,7 @@ func (r *resource) version() string {
 	)
 }
 
-func (r *resource) Snapshot() (string, cachev3.Snapshot, error) {
+func (r *resource) Snapshot() (string, *cachev3.Snapshot, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
@@ -126,19 +127,23 @@ func (r *resource) Snapshot() (string, cachev3.Snapshot, error) {
 	}
 
 	version := r.version()
-	snapshot := cachev3.NewSnapshot(
+
+	snapshot, err := cachev3.NewSnapshot(
 		version,
-		endpoints,
-		clusters,
-		[]typesv3.Resource{r.route},
-		[]typesv3.Resource{r.listener},
-		[]typesv3.Resource{}, // runtimes
-		[]typesv3.Resource{}, // secrets requires v0.9.6+
+		map[resourcev3.Type][]typesv3.Resource{
+			resourcev3.EndpointType: endpoints,
+			resourcev3.ClusterType:  clusters,
+			resourcev3.RouteType:    []typesv3.Resource{r.route},
+			resourcev3.ListenerType: []typesv3.Resource{r.listener},
+		},
 	)
+	if err != nil {
+		return "", &cachev3.Snapshot{}, err
+	}
 
 	// validate variables
 	if err := snapshot.Consistent(); err != nil {
-		return "", cachev3.Snapshot{}, err
+		return "", &cachev3.Snapshot{}, err
 	}
 	return version, snapshot, nil
 }
