@@ -6,7 +6,7 @@ _NAME      = $(shell grep -o 'AppName string = "[^"]*"' $(VERSION_GO)  | cut -d 
 _VERSION   = $(shell grep -oE 'Version string = "[0-9]+\.[0-9]+\.[0-9]+"' $(VERSION_GO) | cut -d '"' -f2)
 
 _ENVOY     = "envoy"
-_ENVOY_VER = 1.15.3
+_ENVOY_VER = 1.21.6
 
 .PHONY: build
 build:
