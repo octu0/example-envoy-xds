@@ -28,7 +28,7 @@
       region: "asia-northeast1"
       zone:   "asia-northeast1-a"
       protocol: "tcp"
-      weight: 1000
+      weight: 50
     - instance-name: "i-9672352367378441"
       ip: 10.10.2.102
       port: 3001
