@@ -28,18 +28,21 @@
       region: "asia-northeast1"
       zone:   "asia-northeast1-a"
       protocol: "tcp"
+      weight: 1000
     - instance-name: "i-9672352367378441"
       ip: 10.10.2.102
       port: 3001
       region: "asia-northeast1"
       zone:   "asia-northeast1-b"
       protocol: "tcp"
+      weight: 100
     - instance-name: "i-9237543618871305"
       ip: 10.10.2.103
       port: 3001
       region: "asia-northeast1"
       zone:   "asia-northeast1-c"
       protocol: "tcp"
+      weight: 1
 - name: web-image
   balancing-policy: "locality"
   instances:

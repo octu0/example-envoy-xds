@@ -17,6 +17,7 @@ type EDSInstanceConfig struct {
 	Region       string `yaml:"region"         validate:"required"`
 	Zone         string `yaml:"zone"           validate:"zone"`
 	Protocol     string `yaml:"protocol"       validate:"required"`
+	Weight       uint32 `yaml:"weight"`
 }
 
 func (c EDSInstanceConfig) Address() *corev3.Address {

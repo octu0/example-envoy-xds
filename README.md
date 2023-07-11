@@ -108,7 +108,7 @@ $ docker run --net=host                          \
   -e ENVOY_XDS_LOCALITY_ZONE=asia-northeast1-a   \
   -e ENVOY_ALS_HOST=10.10.0.101                  \
   -e ENVOY_ALS_PORT=5001                         \
-  docker.pkg.github.com/octu0/example-envoy-xds/envoy:1.15.3
+  docker.pkg.github.com/octu0/example-envoy-xds/envoy:1.21.6
 ```
 
 Configure xDS with grpc, `example-envoy-xds` will be started so that envoy can communicate with it.  
@@ -125,7 +125,7 @@ $ docker run --net=host           \
   -e RDS_YAML=/app/vol/rds.yaml   \
   -e LDS_YAML=/app/vol/lds.yaml   \
   -v $(pwd):/app/vol              \
-  docker.pkg.github.com/octu0/example-envoy-xds/example-envoy-xds:1.0.0 server
+  docker.pkg.github.com/octu0/example-envoy-xds/example-envoy-xds:1.0.3 server
 ```
 
 Edit eds.yaml in current directory to make sure EDS are updated.

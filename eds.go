@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultLoadBalancingWeight uint32 = 1
+	defaultLoadBalancingWeight uint32 = 1000
 )
 
 type edsOptFunc func(*edsOpt)
@@ -86,10 +86,15 @@ func (e *endpointDiscoveryService) lbEndpointsWithInitialStatus(instances []EDSI
 func (e *endpointDiscoveryService) lbEndpointsDefault(instances []EDSInstanceConfig) []*endpointv3.LbEndpoint {
 	endpoints := make([]*endpointv3.LbEndpoint, len(instances))
 	for idx, ins := range instances {
+		weight := ins.Weight
+		if weight < 1 {
+			weight = 1
+		}
 		endpoints[idx] = &endpointv3.LbEndpoint{
 			HostIdentifier: &endpointv3.LbEndpoint_Endpoint{
 				Endpoint: e.instanceEndpoint(ins),
 			},
+			LoadBalancingWeight: &wrappers.UInt32Value{Value: weight},
 		}
 	}
 	return endpoints

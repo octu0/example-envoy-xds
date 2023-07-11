@@ -1,23 +1,24 @@
 # envoy GLIBC_2.14-GLIBC_2.27
 FROM ubuntu:20.04
 
-# using envoy v1.15.3
 COPY --from=envoyproxy/envoy:v1.21.6 /usr/local/bin/envoy /usr/local/bin
 
 WORKDIR /envoy
 ADD ./envoy.yaml /etc/envoy/
 
+RUN set -eux && \
+    echo "dash dash/sh boolean false" | debconf-set-selections && \
+    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure dash
+
+RUN apt-get update -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata
+
 ENV TZ Asia/Tokyo
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # set default tz
 RUN set -eux && \
-    apt-get clean && \
-    mv /var/lib/apt/lists /tmp && \
-    mkdir -p /var/lib/apt/lists/partial && \
-    apt-get clean && \
-    apt-get update -y && \
-    apt-get install -y ca-certificates curl gosu openssl dumb-init tzdata && \
-    cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
+    apt-get install -y ca-certificates curl openssl dumb-init && \
     envoy --version && \
     apt-get purge -y && \
     apt-get autoclean

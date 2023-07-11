@@ -21,14 +21,11 @@ FROM alpine:3.18
 RUN apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
-RUN addgroup xds && \
-    adduser -S -G xds xds
-
 WORKDIR /app
 COPY --from=builder /build/   /app/
 
 RUN set -eux && \
-    apk add --no-cache ca-certificates curl dumb-init openssl su-exec && \
+    apk add --no-cache ca-certificates curl dumb-init openssl && \
     /app/example-xds-server --version
 
 EXPOSE 8000

@@ -18,12 +18,12 @@ build-envoy:
 	docker build -f envoy/Dockerfile --build-arg VERSION=$(_ENVOY_VER) -t $(_ENVOY):$(_ENVOY_VER) envoy/
 	docker tag $(_ENVOY):$(_ENVOY_VER) $(_ENVOY):latest
 
-.PHONY: gcrpkg
-gcrpkg: build
+.PHONY: ghpkg
+ghpkg: build
 	docker tag $(_NAME):$(_VERSION) docker.pkg.github.com/octu0/example-envoy-xds/$(_NAME):$(_VERSION)
 	docker push docker.pkg.github.com/octu0/example-envoy-xds/$(_NAME):$(_VERSION)
 
-.PHONY: gcrpkg-envoy
-gcrpkg-envoy: build-envoy
+.PHONY: ghpkg-envoy
+ghpkg-envoy: build-envoy
 	docker tag $(_ENVOY):$(_ENVOY_VER) docker.pkg.github.com/octu0/example-envoy-xds/$(_ENVOY):$(_ENVOY_VER)
 	docker push docker.pkg.github.com/octu0/example-envoy-xds/$(_ENVOY):$(_ENVOY_VER)

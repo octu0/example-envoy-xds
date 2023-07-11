@@ -25,4 +25,4 @@ sed -i -e "s/@ENVOY_ALS_PORT@/$alsport/" /envoy/envoy.yaml
 sed -i -e "s/@ENVOY_ADMIN_LISTEN_HOST@/$adminhost/" /envoy/envoy.yaml
 sed -i -e "s/@ENVOY_ADMIN_LISTEN_PORT@/$adminport/" /envoy/envoy.yaml
 
-envoy -c /envoy/envoy.yaml "$@"
+exec envoy -c /envoy/envoy.yaml "$@"
