@@ -72,28 +72,6 @@ type server struct {
 	alsHandler *accesslogServiceHandler
 }
 
-func NewServer(ctx context.Context, cache cachev3.Cache, funcs ...serverOptFunc) *server {
-	opt := new(serverOpt)
-	for _, fn := range funcs {
-		fn(opt)
-	}
-	initOpt(opt)
-
-	xdsSvr := grpc.NewServer(
-		grpc.MaxConcurrentStreams(opt.maxConcurrentStreams),
-	)
-	alsSvr := grpc.NewServer(
-		grpc.MaxConcurrentStreams(opt.maxConcurrentStreams),
-	)
-	return &server{
-		opt:        opt,
-		xdsSvr:     xdsSvr,
-		alsSvr:     alsSvr,
-		xdsHandler: serverv3.NewServer(ctx, cache, nil),
-		alsHandler: newAccesslogServiceHandler(newLoggerAccessLog()),
-	}
-}
-
 func (s *server) registerXdsService() {
 	clusterservicev3.RegisterClusterDiscoveryServiceServer(s.xdsSvr, s.xdsHandler)
 	endpointservicev3.RegisterEndpointDiscoveryServiceServer(s.xdsSvr, s.xdsHandler)
@@ -166,4 +144,26 @@ func (s *server) Stop() error {
 	s.alsSvr.Stop()
 
 	return nil
+}
+
+func NewServer(ctx context.Context, cache cachev3.Cache, funcs ...serverOptFunc) *server {
+	opt := new(serverOpt)
+	for _, fn := range funcs {
+		fn(opt)
+	}
+	initOpt(opt)
+
+	xdsSvr := grpc.NewServer(
+		grpc.MaxConcurrentStreams(opt.maxConcurrentStreams),
+	)
+	alsSvr := grpc.NewServer(
+		grpc.MaxConcurrentStreams(opt.maxConcurrentStreams),
+	)
+	return &server{
+		opt:        opt,
+		xdsSvr:     xdsSvr,
+		alsSvr:     alsSvr,
+		xdsHandler: serverv3.NewServer(ctx, cache, nil),
+		alsHandler: newAccesslogServiceHandler(newLoggerAccessLog()),
+	}
 }

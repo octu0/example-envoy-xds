@@ -13,22 +13,13 @@ import (
 )
 
 const (
-	ACCESSLOG_LF    string = "\n"
-	ACCESSLOG_DELIM string = "\t"
+	AccesslogLinefeed  string = "\n"
+	AccesslogDelimiter string = "\t"
 )
 
 var (
 	acclogBufPool = bp.NewBufferPool(10000, 1*1024)
-	tzJST         = JSTLocation()
 )
-
-func JSTLocation() *time.Location {
-	loc, err := time.LoadLocation("Asia/Tokyo")
-	if err != nil {
-		return time.FixedZone("Asia/Tokyo", 9*60*60)
-	}
-	return loc
-}
 
 type AccessLog struct {
 	Route                     string
@@ -52,9 +43,10 @@ type AccessLog struct {
 // write to buffer
 func (a AccessLog) WriteTo(logId string, buf *bytes.Buffer) {
 	// RequestTime as UTC
-	jstRequestTime := a.RequestTime.In(tzJST)
+	reqTime := a.RequestTime.In(defaultTZ)
+
 	a.write(buf, "id:", logId)
-	a.write(buf, "time:", jstRequestTime.Format("2006-01-02 15:04:05.000"))
+	a.write(buf, "time:", reqTime.Format("2006-01-02 15:04:05.000"))
 	a.write(buf, "route:", a.Route)
 	a.write(buf, "proto:", a.Protocol)
 	a.write(buf, "method:", a.RequestMethod)
@@ -69,7 +61,7 @@ func (a AccessLog) WriteTo(logId string, buf *bytes.Buffer) {
 	a.write(buf, "res.complete:", a.ResponseCompleteDuration.String())
 	a.write(buf, "client.receiving:", a.ClientReceivingDuration.String())
 	a.write(buf, "client.complete:", a.ClientCompleteDuration.String())
-	buf.WriteString(ACCESSLOG_LF)
+	buf.WriteString(AccesslogLinefeed)
 }
 
 // make ltsv
@@ -79,17 +71,11 @@ func (a AccessLog) write(buf *bytes.Buffer, tag, value string) {
 	}
 	buf.WriteString(tag)
 	buf.WriteString(value)
-	buf.WriteString(ACCESSLOG_DELIM)
+	buf.WriteString(AccesslogDelimiter)
 }
 
 type accesslogServiceHandler struct {
 	log *log.Logger
-}
-
-func newAccesslogServiceHandler(logger *log.Logger) *accesslogServiceHandler {
-	return &accesslogServiceHandler{
-		log: logger,
-	}
 }
 
 func (h *accesslogServiceHandler) StreamAccessLogs(stream alsv3.AccessLogService_StreamAccessLogsServer) error {
@@ -141,4 +127,10 @@ func (h *accesslogServiceHandler) StreamAccessLogs(stream alsv3.AccessLogService
 	}
 
 	return nil
+}
+
+func newAccesslogServiceHandler(logger *log.Logger) *accesslogServiceHandler {
+	return &accesslogServiceHandler{
+		log: logger,
+	}
 }

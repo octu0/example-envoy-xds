@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"context"
@@ -13,12 +13,9 @@ import (
 )
 
 func serverAction(c *cli.Context) error {
-	ctx, err := prepareAction(c.Command.Name, c)
-	if err != nil {
-		return err
-	}
+	initLogLevel(c)
 
-	sctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	nodeId := c.String("node-id")
@@ -33,7 +30,8 @@ func serverAction(c *cli.Context) error {
 		nodeId = hostname
 	}
 
-	wf := xds.NewWatchFile(sctx,
+	wf := xds.NewWatchFile(
+		ctx,
 		nodeId,
 		xds.WatchCdsConfigFile(c.String("cds-yaml")),
 		xds.WatchEdsConfigFile(c.String("eds-yaml")),
@@ -41,7 +39,9 @@ func serverAction(c *cli.Context) error {
 		xds.WatchLdsConfigFile(c.String("lds-yaml")),
 	)
 
-	svr := xds.NewServer(sctx, wf.Cache(),
+	svr := xds.NewServer(
+		ctx,
+		wf.Cache(),
 		xds.XdsListenAddr(xdsListenAddr),
 		xds.AlsListenAddr(alsListenAddr),
 	)
@@ -53,7 +53,7 @@ func serverAction(c *cli.Context) error {
 		log.Printf("error: load file(s) error: %s", err.Error())
 		return err
 	}
-	if err := wf.Watch(sctx); err != nil {
+	if err := wf.Watch(ctx); err != nil {
 		log.Printf("error: failed create to fsnotify: %s", err.Error())
 		return err
 	}
@@ -62,7 +62,7 @@ func serverAction(c *cli.Context) error {
 
 	go svr.Start()
 
-	<-sctx.Done() // wait stop
+	<-ctx.Done() // wait stop
 
 	log.Printf("info: server stopping...")
 

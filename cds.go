@@ -15,30 +15,6 @@ import (
 	typev3 "github.com/envoyproxy/go-control-plane/envoy/type/v3"
 )
 
-type CDSConfig struct {
-	ClusterName string               `yaml:"name"         validate:"required"`
-	LbPolicy    string               `yaml:"lb-policy"    validate:"required"`
-	HealthCheck CDSHealthCheckConfig `yaml:"health-check" validate:"required"`
-}
-
-type CDSHealthCheckConfig struct {
-	Host           string   `yaml:"host"         validate:""`
-	Path           string   `yaml:"path"         validate:"required"`
-	Status         []string `yaml:"status"       validate:"required,unique"`
-	Timeout        uint32   `yaml:"timeout"      validate:"gte=1,lte=900"`
-	Interval       uint32   `yaml:"interval"     validate:"gte=1,lte=180"`
-	HealthyCount   uint32   `yaml:"healthy"      validate:"gte=1,lte=10"`
-	UnhealthyCount uint32   `yaml:"unhealthy"    validate:"gte=1,lte=10"`
-}
-
-func (c CDSHealthCheckConfig) TimeoutSecond() time.Duration {
-	return time.Duration(c.Timeout) * time.Second
-}
-
-func (c CDSHealthCheckConfig) IntervalSecond() time.Duration {
-	return time.Duration(c.Interval) * time.Second
-}
-
 const (
 	defaultClusterConnectionTimeout                time.Duration = 10 * time.Second
 	defaultClusterUpstreamKeepAliveIntervalSeconds uint32        = 60
@@ -186,20 +162,6 @@ type clusterDiscoveryService struct {
 	opt       *cdsOpt
 	xdsConfig *corev3.ConfigSource
 	version   uint64
-}
-
-func newClusterDiscoveryService(xdsConfig *corev3.ConfigSource, funcs ...cdsOptFunc) *clusterDiscoveryService {
-	opt := new(cdsOpt)
-	for _, fn := range funcs {
-		fn(opt)
-	}
-	initCdsOpt(opt)
-
-	return &clusterDiscoveryService{
-		opt:       opt,
-		xdsConfig: xdsConfig,
-		version:   uint64(0),
-	}
 }
 
 func (c *clusterDiscoveryService) increVersion() uint64 {
@@ -398,4 +360,18 @@ func (c *clusterDiscoveryService) outlierDetection(cfg CDSConfig) *clusterv3.Out
 func (c *clusterDiscoveryService) create(configs []CDSConfig) (string, []*clusterv3.Cluster, error) {
 	version := strconv.FormatUint(c.increVersion(), 10)
 	return version, c.clusters(configs), nil
+}
+
+func newClusterDiscoveryService(xdsConfig *corev3.ConfigSource, funcs ...cdsOptFunc) *clusterDiscoveryService {
+	opt := new(cdsOpt)
+	for _, fn := range funcs {
+		fn(opt)
+	}
+	initCdsOpt(opt)
+
+	return &clusterDiscoveryService{
+		opt:       opt,
+		xdsConfig: xdsConfig,
+		version:   uint64(0),
+	}
 }

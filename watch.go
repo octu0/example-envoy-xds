@@ -48,7 +48,7 @@ func WatchLdsConfigFile(path string) watchOptFunc {
 }
 
 type WatchFile struct {
-	ctx context.Context
+	ctx      context.Context
 	nodeId   string
 	opt      *watchOpt
 	cache    cachev3.SnapshotCache
@@ -57,26 +57,6 @@ type WatchFile struct {
 	rds      *routeDiscoveryService
 	lds      *listenerDiscoveryService
 	resource *resource
-}
-
-func NewWatchFile(ctx context.Context, nodeId string, funcs ...watchOptFunc) *WatchFile {
-	opt := new(watchOpt)
-	for _, fn := range funcs {
-		fn(opt)
-	}
-
-	xdsConfig := xdsConfigSource()
-	return &WatchFile{
-		ctx:      ctx,
-		nodeId:   nodeId,
-		opt:      opt,
-		cache:    cachev3.NewSnapshotCache(false, cachev3.IDHash{}, newLoggerSnapshotCache()),
-		cds:      newClusterDiscoveryService(xdsConfig),
-		eds:      newEndpointDiscoveryService(xdsConfig),
-		rds:      newRouteDiscoveryService(xdsConfig),
-		lds:      newListenerDiscoveryService(xdsConfig),
-		resource: newResource(),
-	}
 }
 
 func (w *WatchFile) Cache() cachev3.Cache {
@@ -393,6 +373,26 @@ func (w *WatchFile) ReloadAll() error {
 		return err
 	}
 	return nil
+}
+
+func NewWatchFile(ctx context.Context, nodeId string, funcs ...watchOptFunc) *WatchFile {
+	opt := new(watchOpt)
+	for _, fn := range funcs {
+		fn(opt)
+	}
+
+	xdsConfig := xdsConfigSource()
+	return &WatchFile{
+		ctx:      ctx,
+		nodeId:   nodeId,
+		opt:      opt,
+		cache:    cachev3.NewSnapshotCache(false, cachev3.IDHash{}, newLoggerSnapshotCache()),
+		cds:      newClusterDiscoveryService(xdsConfig),
+		eds:      newEndpointDiscoveryService(xdsConfig),
+		rds:      newRouteDiscoveryService(xdsConfig),
+		lds:      newListenerDiscoveryService(xdsConfig),
+		resource: newResource(),
+	}
 }
 
 func equalPath(src, target string) bool {

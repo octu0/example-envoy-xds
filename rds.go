@@ -13,47 +13,6 @@ import (
 	matcherv3 "github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3"
 )
 
-type RDSConfig struct {
-	VHostName string             `yaml:"vhost"        validate:"required"`
-	Domain    []string           `yaml:"domain"       validate:"required,unique"`
-	Cluster   []RDSClusterConfig `yaml:"cluster"      validate:"required"`
-	Action    RDSActionConfig    `yaml:"action"       validate:"required"`
-}
-
-type RDSClusterConfig struct {
-	Prefix string                   `yaml:"prefix"       validate:"required"`
-	Target []RDSClusterWeightConfig `yaml:"target"       validate:"required"`
-	Headers []RDSClusterHeaderConfig `yaml:"headers"      validate:""`
-}
-
-type RDSClusterWeightConfig struct {
-	ClusterName string `yaml:"name"         validate:"required"`
-	Weight      uint32 `yaml:"weight"       validate:"gte=0,lte=100"`
-}
-
-type RDSClusterHeaderConfig struct {
-	HeaderName string                `yaml:"name"          validate:""`
-	StringMatch RDSStringMatcher     `yaml:"string_match"  validate:""`
-}
-
-type RDSStringMatcher struct {
-	Exact string `yaml:"exact"             validate:""`
-}
-
-type RDSActionConfig struct {
-	Timeout     uint32 `yaml:"timeout"      validate:"required"`
-	IdleTimeout uint32 `yaml:"idle-timeout" validate:"required"`
-	RetryPolicy string `yaml:"retry-policy" validate:"required"`
-}
-
-func (c RDSActionConfig) TimeoutSecond() time.Duration {
-	return time.Duration(c.Timeout) * time.Second
-}
-
-func (c RDSActionConfig) IdleTimeoutSecond() time.Duration {
-	return time.Duration(c.IdleTimeout) * time.Second
-}
-
 const (
 	defaultRetryBackOffIntervalBase time.Duration = 100 * time.Millisecond
 	defaultRetryBackOffIntervalMax  time.Duration = 3 * time.Second
@@ -105,30 +64,10 @@ func initRdsOpt(opt *rdsOpt) {
 	}
 }
 
-type prefixUsageWeight struct {
-	usagesFlat  string
-	usages      []string
-	totalWeight uint32
-}
-
 type routeDiscoveryService struct {
 	opt       *rdsOpt
 	xdsConfig *corev3.ConfigSource
 	version   uint64
-}
-
-func newRouteDiscoveryService(xdsConfig *corev3.ConfigSource, funcs ...rdsOptFunc) *routeDiscoveryService {
-	opt := new(rdsOpt)
-	for _, fn := range funcs {
-		fn(opt)
-	}
-	initRdsOpt(opt)
-
-	return &routeDiscoveryService{
-		opt:       opt,
-		xdsConfig: xdsConfig,
-		version:   uint64(0),
-	}
 }
 
 func (r *routeDiscoveryService) increVersion() uint64 {
@@ -214,7 +153,7 @@ func (r *routeDiscoveryService) header(h RDSClusterHeaderConfig) *routev3.Header
 					Exact: h.StringMatch.Exact,
 				},
 			},
-        },
+		},
 	}
 }
 
@@ -235,7 +174,7 @@ func (r *routeDiscoveryService) route(cluster RDSClusterConfig, action RDSAction
 		Name: routeName,
 		Match: &routev3.RouteMatch{
 			PathSpecifier: &routev3.RouteMatch_Prefix{Prefix: cluster.Prefix},
-			Headers: r.clusterHeaders(cluster),
+			Headers:       r.clusterHeaders(cluster),
 		},
 		// https://github.com/envoyproxy/go-control-plane/blob/d5e54b318e480a7dcc1cadf1a4406145669a5965/envoy/config/route/v3/route_components.pb.go#L1379
 		Action: &routev3.Route_Route{
@@ -282,4 +221,18 @@ func (r *routeDiscoveryService) routeConfiguration(configs []RDSConfig) *routev3
 func (r *routeDiscoveryService) create(configs []RDSConfig) (string, *routev3.RouteConfiguration, error) {
 	version := strconv.FormatUint(r.increVersion(), 10)
 	return version, r.routeConfiguration(configs), nil
+}
+
+func newRouteDiscoveryService(xdsConfig *corev3.ConfigSource, funcs ...rdsOptFunc) *routeDiscoveryService {
+	opt := new(rdsOpt)
+	for _, fn := range funcs {
+		fn(opt)
+	}
+	initRdsOpt(opt)
+
+	return &routeDiscoveryService{
+		opt:       opt,
+		xdsConfig: xdsConfig,
+		version:   uint64(0),
+	}
 }

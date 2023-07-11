@@ -13,10 +13,6 @@ import (
 	resourcev3 "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 )
 
-func versionString(endpoint, cluster, route, listener string) string {
-	return strings.Join([]string{endpoint, cluster, route, listener}, ".")
-}
-
 type resource struct {
 	mutex            *sync.RWMutex
 	endpoints        []*endpointv3.ClusterLoadAssignment
@@ -27,20 +23,6 @@ type resource struct {
 	routeVersion     string
 	listener         *listenerv3.Listener
 	listenerVersion  string
-}
-
-func newResource() *resource {
-	return &resource{
-		mutex:            new(sync.RWMutex),
-		endpoints:        nil,
-		endpointsVersion: "0",
-		clusters:         nil,
-		clustersVersion:  "0",
-		route:            nil,
-		routeVersion:     "0",
-		listener:         nil,
-		listenerVersion:  "0",
-	}
 }
 
 func (r *resource) updateListener(version string, listener *listenerv3.Listener) {
@@ -146,4 +128,22 @@ func (r *resource) Snapshot() (string, *cachev3.Snapshot, error) {
 		return "", &cachev3.Snapshot{}, err
 	}
 	return version, snapshot, nil
+}
+
+func newResource() *resource {
+	return &resource{
+		mutex:            new(sync.RWMutex),
+		endpoints:        nil,
+		endpointsVersion: "0",
+		clusters:         nil,
+		clustersVersion:  "0",
+		route:            nil,
+		routeVersion:     "0",
+		listener:         nil,
+		listenerVersion:  "0",
+	}
+}
+
+func versionString(endpoint, cluster, route, listener string) string {
+	return strings.Join([]string{endpoint, cluster, route, listener}, ".")
 }
