@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultLoadBalancingWeight uint32 = 1000
+	defaultLoadBalancingWeight uint32 = 1
 )
 
 type edsOptFunc func(*edsOpt)
@@ -113,7 +113,7 @@ func (e *endpointDiscoveryService) lbLocalityEndpoint(region string, zone string
 		LbEndpoints: e.lbEndpoints(instances),
 		// https://www.envoyproxy.io/docs/envoy/v1.15.0/intro/arch_overview/upstream/load_balancing/locality_weight#arch-overview-load-balancing-locality-weighted-lb
 		// https://www.envoyproxy.io/docs/envoy/v1.15.0/api-v3/config/endpoint/v3/endpoint_components.proto#envoy-v3-api-msg-config-endpoint-v3-localitylbendpoints
-		LoadBalancingWeight: &wrappers.UInt32Value{Value: e.opt.loadBalancingWeight},
+		//LoadBalancingWeight: &wrappers.UInt32Value{Value: e.opt.loadBalancingWeight},
 	}
 }
 
