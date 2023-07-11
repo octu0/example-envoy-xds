@@ -1,6 +1,6 @@
 module github.com/octu0/example-envoy-xds
 
-go 1.18
+go 1.20
 
 require (
 	github.com/comail/colog v0.0.0-20160416085026-fba8e7b1f46c

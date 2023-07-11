@@ -1,4 +1,4 @@
-FROM golang:1.18-alpine as builder
+FROM golang:1.20-alpine as builder
 
 WORKDIR /build
 ADD . /go/src/github.com/octu0/example-xds-server
@@ -10,14 +10,13 @@ RUN set -eux && \
       -tags netgo -installsuffix netgo --ldflags '-extldflags "-static"'  \
       -o /build/example-xds-server \
         cmd/main.go \
-        cmd/server.go \
       && \
     /build/example-xds-server --version && \
     apk del .build-deps
 
 # ----------------------------------
 
-FROM alpine:3.12
+FROM alpine:3.18
 
 RUN apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
@@ -27,6 +26,7 @@ RUN addgroup xds && \
 
 WORKDIR /app
 COPY --from=builder /build/   /app/
+
 RUN set -eux && \
     apk add --no-cache ca-certificates curl dumb-init openssl su-exec && \
     /app/example-xds-server --version
