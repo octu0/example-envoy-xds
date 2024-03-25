@@ -13,6 +13,7 @@ import (
 	corev3 "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	listenerv3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	alsv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/grpc/v3"
+	routerv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/router/v3"
 	httpconnmgrv3 "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	resourcev3 "github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	wellknownv3 "github.com/envoyproxy/go-control-plane/pkg/wellknown"
@@ -46,7 +47,11 @@ func (s *listenerDiscoveryService) increVersion() uint64 {
 	return atomic.AddUint64(&s.version, 1)
 }
 
-func (s *listenerDiscoveryService) httpConnectionManager(config LDSConfig) *httpconnmgrv3.HttpConnectionManager {
+func (s *listenerDiscoveryService) httpConnectionManager(config LDSConfig) (*httpconnmgrv3.HttpConnectionManager, error) {
+	httpFilters, err := s.connHttpFilters()
+	if err != nil {
+	    return nil, err
+	}
 	return &httpconnmgrv3.HttpConnectionManager{
 		CodecType:                 httpconnmgrv3.HttpConnectionManager_AUTO,
 		StatPrefix:                s.opt.statPrefix,
@@ -58,8 +63,8 @@ func (s *listenerDiscoveryService) httpConnectionManager(config LDSConfig) *http
 		RequestTimeout:            ptypes.DurationProto(config.Timeout.RequestTimeoutSecond()),
 		DrainTimeout:              ptypes.DurationProto(config.Timeout.DrainTimeoutSecond()),
 		RouteSpecifier:            s.routeSpecifier(),
-		HttpFilters:               s.connHttpFilters(),
-	}
+		HttpFilters:               httpFilters,
+	}, nil
 }
 
 func (s *listenerDiscoveryService) commonHttpProtocolOptions(config LDSConfig) *corev3.HttpProtocolOptions {
@@ -81,14 +86,21 @@ func (s *listenerDiscoveryService) routeSpecifier() *httpconnmgrv3.HttpConnectio
 	}
 }
 
-func (s *listenerDiscoveryService) connHttpFilters() []*httpconnmgrv3.HttpFilter {
-	// https://www.envoyproxy.io/docs/envoy/v1.15.0/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#envoy-v3-api-msg-extensions-filters-network-http-connection-manager-v3-httpfilter
-	return []*httpconnmgrv3.HttpFilter{
-		// declare as name as "http.router"
-		&httpconnmgrv3.HttpFilter{
-			Name: wellknownv3.Router,
-		},
-	}
+func (s *listenerDiscoveryService) connHttpFilters() ([]*httpconnmgrv3.HttpFilter, error) {
+    // https://www.envoyproxy.io/docs/envoy/v1.15.0/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#envoy-v3-api-msg-extensions-filters-network-http-connection-manager-v3-httpfilter
+    conf, err := ptypes.MarshalAny(&routerv3.Router{})
+    if err != nil {
+        return nil, err
+    }
+    return []*httpconnmgrv3.HttpFilter{
+        // declare as name as "http.router". name is used as a fallback
+        &httpconnmgrv3.HttpFilter{
+            Name: wellknownv3.Router,
+            ConfigType: &httpconnmgrv3.HttpFilter_TypedConfig{
+                TypedConfig: conf,
+            },
+        },
+    }, nil
 }
 
 func (s *listenerDiscoveryService) connHttpAccesslog(alsConfig *any.Any) []*accesslogv3.AccessLog {
@@ -146,7 +158,11 @@ func (s *listenerDiscoveryService) create(config LDSConfig) (string, *listenerv3
 		return "", nil, err
 	}
 
-	manager := s.httpConnectionManager(config)
+	manager, err := s.httpConnectionManager(config)
+	if err != nil {
+		return "", nil, err
+	}
+
 	manager.AccessLog = s.connHttpAccesslog(alsConfig)
 
 	managerConfig, err := ptypes.MarshalAny(manager)
