@@ -1,7 +1,7 @@
 # envoy GLIBC_2.14-GLIBC_2.27
 FROM ubuntu:20.04
 
-COPY --from=envoyproxy/envoy:v1.21.6 /usr/local/bin/envoy /usr/local/bin
+COPY --from=envoyproxy/envoy:v1.28.1 /usr/local/bin/envoy /usr/local/bin
 
 WORKDIR /envoy
 ADD ./envoy.yaml /etc/envoy/
