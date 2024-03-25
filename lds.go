@@ -50,7 +50,7 @@ func (s *listenerDiscoveryService) increVersion() uint64 {
 func (s *listenerDiscoveryService) httpConnectionManager(config LDSConfig) (*httpconnmgrv3.HttpConnectionManager, error) {
 	httpFilters, err := s.connHttpFilters()
 	if err != nil {
-	    return nil, err
+		return nil, err
 	}
 	return &httpconnmgrv3.HttpConnectionManager{
 		CodecType:                 httpconnmgrv3.HttpConnectionManager_AUTO,
@@ -87,20 +87,20 @@ func (s *listenerDiscoveryService) routeSpecifier() *httpconnmgrv3.HttpConnectio
 }
 
 func (s *listenerDiscoveryService) connHttpFilters() ([]*httpconnmgrv3.HttpFilter, error) {
-    // https://www.envoyproxy.io/docs/envoy/v1.15.0/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#envoy-v3-api-msg-extensions-filters-network-http-connection-manager-v3-httpfilter
-    conf, err := ptypes.MarshalAny(&routerv3.Router{})
-    if err != nil {
-        return nil, err
-    }
-    return []*httpconnmgrv3.HttpFilter{
-        // declare as name as "http.router". name is used as a fallback
-        &httpconnmgrv3.HttpFilter{
-            Name: wellknownv3.Router,
-            ConfigType: &httpconnmgrv3.HttpFilter_TypedConfig{
-                TypedConfig: conf,
-            },
-        },
-    }, nil
+	// https://www.envoyproxy.io/docs/envoy/v1.15.0/api-v3/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto#envoy-v3-api-msg-extensions-filters-network-http-connection-manager-v3-httpfilter
+	conf, err := ptypes.MarshalAny(&routerv3.Router{})
+	if err != nil {
+		return nil, err
+	}
+	return []*httpconnmgrv3.HttpFilter{
+		// declare as name as "http.router". name is used as a fallback
+		&httpconnmgrv3.HttpFilter{
+			Name: wellknownv3.Router,
+			ConfigType: &httpconnmgrv3.HttpFilter_TypedConfig{
+				TypedConfig: conf,
+			},
+		},
+	}, nil
 }
 
 func (s *listenerDiscoveryService) connHttpAccesslog(alsConfig *any.Any) []*accesslogv3.AccessLog {
